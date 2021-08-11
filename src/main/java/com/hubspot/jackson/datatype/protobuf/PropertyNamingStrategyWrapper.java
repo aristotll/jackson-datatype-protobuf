@@ -32,7 +32,6 @@ public class PropertyNamingStrategyWrapper extends PropertyNamingStrategyBase {
     public String translate(String fieldName) {
       return CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, fieldName);
     }
-
   }
 
   private static class NoOpNamingStrategy extends PropertyNamingStrategyBase {

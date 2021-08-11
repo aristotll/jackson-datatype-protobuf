@@ -1,9 +1,5 @@
 package com.hubspot.jackson.datatype.protobuf.builtin.serializers;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy.PropertyNamingStrategyBase;
@@ -20,11 +16,13 @@ import com.hubspot.jackson.datatype.protobuf.ExtensionRegistryWrapper;
 import com.hubspot.jackson.datatype.protobuf.PropertyNamingStrategyWrapper;
 import com.hubspot.jackson.datatype.protobuf.ProtobufJacksonConfig;
 import com.hubspot.jackson.datatype.protobuf.ProtobufSerializer;
-
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MessageSerializer extends ProtobufSerializer<MessageOrBuilder> {
-  @SuppressFBWarnings(value="SE_BAD_FIELD")
+  @SuppressFBWarnings(value = "SE_BAD_FIELD")
   private final ProtobufJacksonConfig config;
 
   /**
@@ -37,29 +35,37 @@ public class MessageSerializer extends ProtobufSerializer<MessageOrBuilder> {
 
   public MessageSerializer(ProtobufJacksonConfig config) {
     super(MessageOrBuilder.class);
-
     this.config = config;
   }
 
   @Override
   public void serialize(
-          MessageOrBuilder message,
-          JsonGenerator generator,
-          SerializerProvider serializerProvider
-  ) throws IOException {
+    MessageOrBuilder message,
+    JsonGenerator generator,
+    SerializerProvider serializerProvider
+  )
+    throws IOException {
     generator.writeStartObject();
 
-    boolean proto3 = message.getDescriptorForType().getFile().getSyntax() == Syntax.PROTO3;
-    Include include = serializerProvider.getConfig().getDefaultPropertyInclusion().getValueInclusion();
+    boolean proto3 =
+      message.getDescriptorForType().getFile().getSyntax() == Syntax.PROTO3;
+    Include include = serializerProvider
+      .getConfig()
+      .getDefaultPropertyInclusion()
+      .getValueInclusion();
     boolean writeDefaultValues = proto3 && include != Include.NON_DEFAULT;
-    boolean writeEmptyCollections = include != Include.NON_DEFAULT && include != Include.NON_EMPTY;
-    PropertyNamingStrategyBase namingStrategy =
-            new PropertyNamingStrategyWrapper(serializerProvider.getConfig().getPropertyNamingStrategy());
+    boolean writeEmptyCollections =
+      include != Include.NON_DEFAULT && include != Include.NON_EMPTY;
+    PropertyNamingStrategyBase namingStrategy = new PropertyNamingStrategyWrapper(
+      serializerProvider.getConfig().getPropertyNamingStrategy()
+    );
 
     Descriptor descriptor = message.getDescriptorForType();
     List<FieldDescriptor> fields = new ArrayList<>(descriptor.getFields());
     if (message instanceof ExtendableMessageOrBuilder<?>) {
-      for (ExtensionInfo extensionInfo : config.extensionRegistry().getExtensionsByDescriptor(descriptor)) {
+      for (ExtensionInfo extensionInfo : config
+        .extensionRegistry()
+        .getExtensionsByDescriptor(descriptor)) {
         fields.add(extensionInfo.descriptor);
       }
     }
@@ -72,7 +78,9 @@ public class MessageSerializer extends ProtobufSerializer<MessageOrBuilder> {
           if (field.isMapField()) {
             generator.writeFieldName(namingStrategy.translate(field.getName()));
             writeMap(field, valueList, generator, serializerProvider);
-          } else if (valueList.size() == 1 && writeSingleElementArraysUnwrapped(serializerProvider)) {
+          } else if (
+            valueList.size() == 1 && writeSingleElementArraysUnwrapped(serializerProvider)
+          ) {
             generator.writeFieldName(namingStrategy.translate(field.getName()));
             writeValue(field, valueList.get(0), generator, serializerProvider);
           } else {
@@ -83,7 +91,14 @@ public class MessageSerializer extends ProtobufSerializer<MessageOrBuilder> {
             generator.writeEndArray();
           }
         }
-      } else if (message.hasField(field) || (writeDefaultValues && !supportsFieldPresence(field) && field.getContainingOneof() == null)) {
+      } else if (
+        message.hasField(field) ||
+        (
+          writeDefaultValues &&
+          !supportsFieldPresence(field) &&
+          field.getContainingOneof() == null
+        )
+      ) {
         generator.writeFieldName(namingStrategy.translate(field.getName()));
         writeValue(field, message.getField(field), generator, serializerProvider);
       } else if (include == Include.ALWAYS && field.getContainingOneof() == null) {
@@ -98,10 +113,6 @@ public class MessageSerializer extends ProtobufSerializer<MessageOrBuilder> {
   private static boolean supportsFieldPresence(FieldDescriptor field) {
     // messages still support field presence in proto3
     return field.getJavaType() == JavaType.MESSAGE;
-  }
-
-  private static boolean writeEmptyArrays(SerializerProvider config) {
-    return config.isEnabled(SerializationFeature.WRITE_EMPTY_JSON_ARRAYS);
   }
 
   private static boolean writeSingleElementArraysUnwrapped(SerializerProvider config) {

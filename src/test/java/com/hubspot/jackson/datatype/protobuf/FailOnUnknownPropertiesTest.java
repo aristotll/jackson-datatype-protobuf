@@ -1,5 +1,9 @@
 package com.hubspot.jackson.datatype.protobuf;
 
+import static com.hubspot.jackson.datatype.protobuf.util.ObjectMapperHelper.camelCase;
+import static com.hubspot.jackson.datatype.protobuf.util.ObjectMapperHelper.toTree;
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -9,10 +13,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.hubspot.jackson.datatype.protobuf.util.ProtobufCreator;
 import com.hubspot.jackson.datatype.protobuf.util.TestProtobuf.AllFields;
 import org.junit.Test;
-
-import static com.hubspot.jackson.datatype.protobuf.util.ObjectMapperHelper.camelCase;
-import static com.hubspot.jackson.datatype.protobuf.util.ObjectMapperHelper.toTree;
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class FailOnUnknownPropertiesTest {
 

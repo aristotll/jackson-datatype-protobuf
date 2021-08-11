@@ -34,6 +34,7 @@ import com.hubspot.jackson.datatype.protobuf.builtin.deserializers.StructDeseria
 import com.hubspot.jackson.datatype.protobuf.builtin.deserializers.TimestampDeserializer;
 import com.hubspot.jackson.datatype.protobuf.builtin.deserializers.ValueDeserializer;
 import com.hubspot.jackson.datatype.protobuf.builtin.deserializers.WrappedPrimitiveDeserializer;
+import com.hubspot.jackson.datatype.protobuf.builtin.serializers.CanonicalAnySerializer;
 import com.hubspot.jackson.datatype.protobuf.builtin.serializers.DurationSerializer;
 import com.hubspot.jackson.datatype.protobuf.builtin.serializers.FieldMaskSerializer;
 import com.hubspot.jackson.datatype.protobuf.builtin.serializers.ListValueSerializer;
@@ -53,7 +54,7 @@ public class ProtobufModule extends Module {
   private final ProtobufJacksonConfig config;
 
   public ProtobufModule() {
-    this(ProtobufJacksonConfig.builder().build());
+    this(ProtobufJacksonConfig.getDefault());
   }
 
   /**
@@ -91,13 +92,18 @@ public class ProtobufModule extends Module {
     serializers.addSerializer(new ValueSerializer());
     serializers.addSerializer(new WrappedPrimitiveSerializer<>(DoubleValue.class));
     serializers.addSerializer(new WrappedPrimitiveSerializer<>(FloatValue.class));
-    serializers.addSerializer(new WrappedPrimitiveSerializer<>(Int64Value.class));
-    serializers.addSerializer(new WrappedPrimitiveSerializer<>(UInt64Value.class));
+    serializers.addSerializer(new WrappedPrimitiveSerializer<>(Int64Value.class, config));
+    serializers.addSerializer(
+      new WrappedPrimitiveSerializer<>(UInt64Value.class, config)
+    );
     serializers.addSerializer(new WrappedPrimitiveSerializer<>(Int32Value.class));
     serializers.addSerializer(new WrappedPrimitiveSerializer<>(UInt32Value.class));
     serializers.addSerializer(new WrappedPrimitiveSerializer<>(BoolValue.class));
     serializers.addSerializer(new WrappedPrimitiveSerializer<>(StringValue.class));
     serializers.addSerializer(new WrappedPrimitiveSerializer<>(BytesValue.class));
+    if (config.useCanonicalAnySerialization()) {
+      serializers.addSerializer(new CanonicalAnySerializer(config));
+    }
 
     context.addSerializers(serializers);
 
@@ -105,32 +111,66 @@ public class ProtobufModule extends Module {
     SimpleDeserializers deserializers = new SimpleDeserializers();
     deserializers.addDeserializer(Duration.class, new DurationDeserializer());
     deserializers.addDeserializer(FieldMask.class, new FieldMaskDeserializer());
-    deserializers.addDeserializer(ListValue.class, new ListValueDeserializer().buildAtEnd());
+    deserializers.addDeserializer(
+      ListValue.class,
+      new ListValueDeserializer().buildAtEnd()
+    );
     deserializers.addDeserializer(NullValue.class, new NullValueDeserializer());
     deserializers.addDeserializer(Struct.class, new StructDeserializer().buildAtEnd());
     deserializers.addDeserializer(Timestamp.class, new TimestampDeserializer());
     deserializers.addDeserializer(Value.class, new ValueDeserializer().buildAtEnd());
-    deserializers.addDeserializer(DoubleValue.class, wrappedPrimitiveDeserializer(DoubleValue.class));
-    deserializers.addDeserializer(FloatValue.class, wrappedPrimitiveDeserializer(FloatValue.class));
-    deserializers.addDeserializer(Int64Value.class, wrappedPrimitiveDeserializer(Int64Value.class));
-    deserializers.addDeserializer(UInt64Value.class, wrappedPrimitiveDeserializer(UInt64Value.class));
-    deserializers.addDeserializer(Int32Value.class, wrappedPrimitiveDeserializer(Int32Value.class));
-    deserializers.addDeserializer(UInt32Value.class, wrappedPrimitiveDeserializer(UInt32Value.class));
-    deserializers.addDeserializer(BoolValue.class, wrappedPrimitiveDeserializer(BoolValue.class));
-    deserializers.addDeserializer(StringValue.class, wrappedPrimitiveDeserializer(StringValue.class));
-    deserializers.addDeserializer(BytesValue.class, wrappedPrimitiveDeserializer(BytesValue.class));
+    deserializers.addDeserializer(
+      DoubleValue.class,
+      wrappedPrimitiveDeserializer(DoubleValue.class)
+    );
+    deserializers.addDeserializer(
+      FloatValue.class,
+      wrappedPrimitiveDeserializer(FloatValue.class)
+    );
+    deserializers.addDeserializer(
+      Int64Value.class,
+      wrappedPrimitiveDeserializer(Int64Value.class)
+    );
+    deserializers.addDeserializer(
+      UInt64Value.class,
+      wrappedPrimitiveDeserializer(UInt64Value.class)
+    );
+    deserializers.addDeserializer(
+      Int32Value.class,
+      wrappedPrimitiveDeserializer(Int32Value.class)
+    );
+    deserializers.addDeserializer(
+      UInt32Value.class,
+      wrappedPrimitiveDeserializer(UInt32Value.class)
+    );
+    deserializers.addDeserializer(
+      BoolValue.class,
+      wrappedPrimitiveDeserializer(BoolValue.class)
+    );
+    deserializers.addDeserializer(
+      StringValue.class,
+      wrappedPrimitiveDeserializer(StringValue.class)
+    );
+    deserializers.addDeserializer(
+      BytesValue.class,
+      wrappedPrimitiveDeserializer(BytesValue.class)
+    );
     context.addDeserializers(deserializers);
     context.setMixInAnnotations(MessageOrBuilder.class, MessageOrBuilderMixin.class);
   }
 
-  private static <T extends Message> JsonDeserializer<T> wrappedPrimitiveDeserializer(Class<T> type) {
+  private static <T extends Message> JsonDeserializer<T> wrappedPrimitiveDeserializer(
+    Class<T> type
+  ) {
     return new WrappedPrimitiveDeserializer<>(type).buildAtEnd();
   }
 
-  @JsonAutoDetect(getterVisibility = Visibility.NONE,
-                  isGetterVisibility =  Visibility.NONE,
-                  setterVisibility =  Visibility.NONE,
-                  creatorVisibility = Visibility.NONE,
-                  fieldVisibility = Visibility.NONE)
-  private static class MessageOrBuilderMixin { }
+  @JsonAutoDetect(
+    getterVisibility = Visibility.NONE,
+    isGetterVisibility = Visibility.NONE,
+    setterVisibility = Visibility.NONE,
+    creatorVisibility = Visibility.NONE,
+    fieldVisibility = Visibility.NONE
+  )
+  private static class MessageOrBuilderMixin {}
 }

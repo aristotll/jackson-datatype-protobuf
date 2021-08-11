@@ -5,11 +5,6 @@ import static com.hubspot.jackson.datatype.protobuf.util.ObjectMapperHelper.toTr
 import static com.hubspot.jackson.datatype.protobuf.util.ObjectMapperHelper.underscore;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.io.IOException;
-import java.util.List;
-
-import org.junit.Test;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
@@ -18,24 +13,33 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.hubspot.jackson.datatype.protobuf.util.ProtobufCreator;
 import com.hubspot.jackson.datatype.protobuf.util.TestProtobuf.PropertyNamingCamelCased;
 import com.hubspot.jackson.datatype.protobuf.util.TestProtobuf.PropertyNamingSnakeCased;
+import java.io.IOException;
+import java.util.List;
+import org.junit.Test;
 
 public class PropertyNamingTest {
 
   @Test
   public void testSingleSnakeCaseToCamelCase() {
-    PropertyNamingSnakeCased message = ProtobufCreator.create(PropertyNamingSnakeCased.class);
+    PropertyNamingSnakeCased message = ProtobufCreator.create(
+      PropertyNamingSnakeCased.class
+    );
 
     JsonNode tree = toTree(camelCase(), message);
 
     assertThat(tree.isObject()).isTrue();
     assertThat(tree.size()).isEqualTo(1);
     assertThat(tree.get("stringAttribute")).isNotNull();
-    assertThat(tree.get("stringAttribute").textValue()).isEqualTo(message.getStringAttribute());
+    assertThat(tree.get("stringAttribute").textValue())
+      .isEqualTo(message.getStringAttribute());
   }
 
   @Test
   public void testMultipleSnakeCaseToCamelCase() {
-    List<PropertyNamingSnakeCased> messages = ProtobufCreator.create(PropertyNamingSnakeCased.class, 10);
+    List<PropertyNamingSnakeCased> messages = ProtobufCreator.create(
+      PropertyNamingSnakeCased.class,
+      10
+    );
 
     JsonNode tree = toTree(camelCase(), messages);
 
@@ -48,25 +52,32 @@ public class PropertyNamingTest {
       assertThat(subTree.isObject()).isTrue();
       assertThat(subTree.size()).isEqualTo(1);
       assertThat(subTree.get("stringAttribute")).isNotNull();
-      assertThat(subTree.get("stringAttribute").textValue()).isEqualTo(messages.get(i).getStringAttribute());
+      assertThat(subTree.get("stringAttribute").textValue())
+        .isEqualTo(messages.get(i).getStringAttribute());
     }
   }
 
   @Test
   public void testSingleUnderscore() {
-    PropertyNamingSnakeCased message = ProtobufCreator.create(PropertyNamingSnakeCased.class);
+    PropertyNamingSnakeCased message = ProtobufCreator.create(
+      PropertyNamingSnakeCased.class
+    );
 
     JsonNode tree = toTree(underscore(), message);
 
     assertThat(tree.isObject()).isTrue();
     assertThat(tree.size()).isEqualTo(1);
     assertThat(tree.get("string_attribute")).isNotNull();
-    assertThat(tree.get("string_attribute").textValue()).isEqualTo(message.getStringAttribute());
+    assertThat(tree.get("string_attribute").textValue())
+      .isEqualTo(message.getStringAttribute());
   }
 
   @Test
   public void testMultipleUnderscore() {
-    List<PropertyNamingSnakeCased> messages = ProtobufCreator.create(PropertyNamingSnakeCased.class, 10);
+    List<PropertyNamingSnakeCased> messages = ProtobufCreator.create(
+      PropertyNamingSnakeCased.class,
+      10
+    );
 
     JsonNode tree = toTree(underscore(), messages);
 
@@ -79,43 +90,58 @@ public class PropertyNamingTest {
       assertThat(subTree.isObject()).isTrue();
       assertThat(subTree.size()).isEqualTo(1);
       assertThat(subTree.get("string_attribute")).isNotNull();
-      assertThat(subTree.get("string_attribute").textValue()).isEqualTo(messages.get(i).getStringAttribute());
+      assertThat(subTree.get("string_attribute").textValue())
+        .isEqualTo(messages.get(i).getStringAttribute());
     }
   }
 
   @Test
   public void testSingleStillCamelCase() {
-    PropertyNamingCamelCased message = ProtobufCreator.create(PropertyNamingCamelCased.class);
+    PropertyNamingCamelCased message = ProtobufCreator.create(
+      PropertyNamingCamelCased.class
+    );
 
     @SuppressWarnings("serial")
-    ObjectMapper mapper = new ObjectMapper().registerModule(new ProtobufModule()).setPropertyNamingStrategy(
+    ObjectMapper mapper = new ObjectMapper()
+      .registerModule(new ProtobufModule())
+      .setPropertyNamingStrategy(
         new PropertyNamingStrategy.PropertyNamingStrategyBase() {
+
           @Override
           public String translate(String propertyName) {
             return propertyName;
           }
-        });
+        }
+      );
 
     JsonNode tree = toTree(mapper, message);
 
     assertThat(tree.isObject()).isTrue();
     assertThat(tree.size()).isEqualTo(1);
     assertThat(tree.get("stringAttribute")).isNotNull();
-    assertThat(tree.get("stringAttribute").textValue()).isEqualTo(message.getStringAttribute());
+    assertThat(tree.get("stringAttribute").textValue())
+      .isEqualTo(message.getStringAttribute());
   }
 
   @Test
   public void testMultipleStillCamelCase() {
-    List<PropertyNamingCamelCased> messages = ProtobufCreator.create(PropertyNamingCamelCased.class, 10);
+    List<PropertyNamingCamelCased> messages = ProtobufCreator.create(
+      PropertyNamingCamelCased.class,
+      10
+    );
 
     @SuppressWarnings("serial")
-    ObjectMapper mapper = new ObjectMapper().registerModule(new ProtobufModule()).setPropertyNamingStrategy(
+    ObjectMapper mapper = new ObjectMapper()
+      .registerModule(new ProtobufModule())
+      .setPropertyNamingStrategy(
         new PropertyNamingStrategy.PropertyNamingStrategyBase() {
+
           @Override
           public String translate(String propertyName) {
             return propertyName;
           }
-        });
+        }
+      );
 
     JsonNode tree = toTree(mapper, messages);
 
@@ -128,12 +154,14 @@ public class PropertyNamingTest {
       assertThat(subTree.isObject()).isTrue();
       assertThat(subTree.size()).isEqualTo(1);
       assertThat(subTree.get("stringAttribute")).isNotNull();
-      assertThat(subTree.get("stringAttribute").textValue()).isEqualTo(messages.get(i).getStringAttribute());
+      assertThat(subTree.get("stringAttribute").textValue())
+        .isEqualTo(messages.get(i).getStringAttribute());
     }
   }
 
   @Test(expected = UnrecognizedPropertyException.class)
-  public void itDoesntAcceptUnderscoreNameForCamelcasePropertyByDefault() throws IOException {
+  public void itDoesntAcceptUnderscoreNameForCamelcasePropertyByDefault()
+    throws IOException {
     String json = "{\"string_attribute\":\"test\"}";
     camelCase().readValue(json, PropertyNamingSnakeCased.class);
   }
@@ -143,12 +171,19 @@ public class PropertyNamingTest {
    * But if the JSON field name is already underscore, we should still accept it if you enable the feature
    */
   @Test
-  public void itAcceptsUnderscoreNameForCamelcasePropertyIfYouEnableIt() throws IOException {
-    ProtobufJacksonConfig config = ProtobufJacksonConfig.builder().acceptLiteralFieldnames(true).build();
+  public void itAcceptsUnderscoreNameForCamelcasePropertyIfYouEnableIt()
+    throws IOException {
+    ProtobufJacksonConfig config = ProtobufJacksonConfig
+      .builder()
+      .acceptLiteralFieldnames(true)
+      .build();
     ObjectMapper mapper = new ObjectMapper().registerModules(new ProtobufModule(config));
 
     String json = "{\"string_attribute\":\"test\"}";
-    PropertyNamingSnakeCased message = mapper.readValue(json, PropertyNamingSnakeCased.class);
+    PropertyNamingSnakeCased message = mapper.readValue(
+      json,
+      PropertyNamingSnakeCased.class
+    );
 
     assertThat(message.getStringAttribute()).isEqualTo("test");
   }

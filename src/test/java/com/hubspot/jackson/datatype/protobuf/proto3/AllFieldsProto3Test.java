@@ -5,16 +5,14 @@ import static com.hubspot.jackson.datatype.protobuf.util.ObjectMapperHelper.unde
 import static com.hubspot.jackson.datatype.protobuf.util.ObjectMapperHelper.writeAndReadBack;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.io.IOException;
-import java.util.List;
-
-import org.junit.Test;
-
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import com.hubspot.jackson.datatype.protobuf.util.ProtobufCreator;
 import com.hubspot.jackson.datatype.protobuf.util.TestProtobuf3.AllFieldsProto3;
 import com.hubspot.jackson.datatype.protobuf.util.TestProtobuf3.NestedProto3;
+import java.io.IOException;
+import java.util.List;
+import org.junit.Test;
 
 public class AllFieldsProto3Test {
 
@@ -38,7 +36,9 @@ public class AllFieldsProto3Test {
 
   @Test
   public void testSingleBuilderCamelCase() {
-    AllFieldsProto3.Builder builder = ProtobufCreator.createBuilder(AllFieldsProto3.Builder.class);
+    AllFieldsProto3.Builder builder = ProtobufCreator.createBuilder(
+      AllFieldsProto3.Builder.class
+    );
 
     AllFieldsProto3.Builder parsed = writeAndReadBack(camelCase(), builder);
 
@@ -47,7 +47,10 @@ public class AllFieldsProto3Test {
 
   @Test
   public void testMultipleBuildersCamelCase() {
-    List<AllFieldsProto3.Builder> builders = ProtobufCreator.createBuilder(AllFieldsProto3.Builder.class, 10);
+    List<AllFieldsProto3.Builder> builders = ProtobufCreator.createBuilder(
+      AllFieldsProto3.Builder.class,
+      10
+    );
 
     List<AllFieldsProto3.Builder> parsed = writeAndReadBack(camelCase(), builders);
 
@@ -74,7 +77,9 @@ public class AllFieldsProto3Test {
 
   @Test
   public void testSingleBuilderUnderscore() {
-    AllFieldsProto3.Builder builder = ProtobufCreator.createBuilder(AllFieldsProto3.Builder.class);
+    AllFieldsProto3.Builder builder = ProtobufCreator.createBuilder(
+      AllFieldsProto3.Builder.class
+    );
 
     AllFieldsProto3.Builder parsed = writeAndReadBack(underscore(), builder);
 
@@ -83,7 +88,10 @@ public class AllFieldsProto3Test {
 
   @Test
   public void testMultipleBuildersUnderscore() {
-    List<AllFieldsProto3.Builder> builders = ProtobufCreator.createBuilder(AllFieldsProto3.Builder.class, 10);
+    List<AllFieldsProto3.Builder> builders = ProtobufCreator.createBuilder(
+      AllFieldsProto3.Builder.class,
+      10
+    );
 
     List<AllFieldsProto3.Builder> parsed = writeAndReadBack(underscore(), builders);
 
@@ -100,12 +108,15 @@ public class AllFieldsProto3Test {
   }
 
   private static List<AllFieldsProto3> build(List<AllFieldsProto3.Builder> builders) {
-    return Lists.transform(builders, new Function<AllFieldsProto3.Builder, AllFieldsProto3>() {
+    return Lists.transform(
+      builders,
+      new Function<AllFieldsProto3.Builder, AllFieldsProto3>() {
 
-      @Override
-      public AllFieldsProto3 apply(AllFieldsProto3.Builder builder) {
-        return builder.build();
+        @Override
+        public AllFieldsProto3 apply(AllFieldsProto3.Builder builder) {
+          return builder.build();
+        }
       }
-    });
+    );
   }
 }

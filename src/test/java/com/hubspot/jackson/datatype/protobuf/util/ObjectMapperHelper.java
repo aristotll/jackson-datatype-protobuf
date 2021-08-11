@@ -1,9 +1,5 @@
 package com.hubspot.jackson.datatype.protobuf.util;
 
-import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
-
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -15,10 +11,15 @@ import com.google.common.collect.Lists;
 import com.google.protobuf.ExtensionRegistry;
 import com.google.protobuf.MessageOrBuilder;
 import com.hubspot.jackson.datatype.protobuf.ProtobufModule;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
 
 public class ObjectMapperHelper {
   private static final ObjectMapper DEFAULT = create();
-  private static final ObjectMapper UNDERSCORE = create(PropertyNamingStrategy.SNAKE_CASE);
+  private static final ObjectMapper UNDERSCORE = create(
+    PropertyNamingStrategy.SNAKE_CASE
+  );
 
   public static ObjectMapper camelCase() {
     return DEFAULT;
@@ -45,7 +46,10 @@ public class ObjectMapperHelper {
   }
 
   @SuppressWarnings("unchecked")
-  public static <T extends MessageOrBuilder> T writeAndReadBack(ObjectMapper mapper, T value) {
+  public static <T extends MessageOrBuilder> T writeAndReadBack(
+    ObjectMapper mapper,
+    T value
+  ) {
     TreeNode tree = toTree(mapper, value);
 
     try {
@@ -56,7 +60,10 @@ public class ObjectMapperHelper {
   }
 
   @SuppressWarnings("unchecked")
-  public static <T extends MessageOrBuilder> List<T> writeAndReadBack(ObjectMapper mapper, List<T> values) {
+  public static <T extends MessageOrBuilder> List<T> writeAndReadBack(
+    ObjectMapper mapper,
+    List<T> values
+  ) {
     if (values.isEmpty()) {
       return Collections.emptyList();
     }
@@ -71,7 +78,10 @@ public class ObjectMapperHelper {
     }
   }
 
-  private static ObjectMapper create(PropertyNamingStrategy namingStrategy, ExtensionRegistry extensionRegistry) {
+  private static ObjectMapper create(
+    PropertyNamingStrategy namingStrategy,
+    ExtensionRegistry extensionRegistry
+  ) {
     return create(extensionRegistry).setPropertyNamingStrategy(namingStrategy);
   }
 

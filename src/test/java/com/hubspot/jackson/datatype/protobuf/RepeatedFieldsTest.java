@@ -1,17 +1,16 @@
 package com.hubspot.jackson.datatype.protobuf;
 
-import com.google.common.base.Function;
-import com.google.common.collect.Lists;
-import com.hubspot.jackson.datatype.protobuf.util.ProtobufCreator;
-import com.hubspot.jackson.datatype.protobuf.util.TestProtobuf.RepeatedFields;
-import org.junit.Test;
-
-import java.util.List;
-
 import static com.hubspot.jackson.datatype.protobuf.util.ObjectMapperHelper.camelCase;
 import static com.hubspot.jackson.datatype.protobuf.util.ObjectMapperHelper.underscore;
 import static com.hubspot.jackson.datatype.protobuf.util.ObjectMapperHelper.writeAndReadBack;
 import static org.assertj.core.api.Assertions.assertThat;
+
+import com.google.common.base.Function;
+import com.google.common.collect.Lists;
+import com.hubspot.jackson.datatype.protobuf.util.ProtobufCreator;
+import com.hubspot.jackson.datatype.protobuf.util.TestProtobuf.RepeatedFields;
+import java.util.List;
+import org.junit.Test;
 
 public class RepeatedFieldsTest {
 
@@ -35,7 +34,9 @@ public class RepeatedFieldsTest {
 
   @Test
   public void testSingleBuilderCamelCase() {
-    RepeatedFields.Builder builder = ProtobufCreator.createBuilder(RepeatedFields.Builder.class);
+    RepeatedFields.Builder builder = ProtobufCreator.createBuilder(
+      RepeatedFields.Builder.class
+    );
 
     RepeatedFields.Builder parsed = writeAndReadBack(camelCase(), builder);
 
@@ -44,7 +45,10 @@ public class RepeatedFieldsTest {
 
   @Test
   public void testMultipleBuildersCamelCase() {
-    List<RepeatedFields.Builder> builders = ProtobufCreator.createBuilder(RepeatedFields.Builder.class, 10);
+    List<RepeatedFields.Builder> builders = ProtobufCreator.createBuilder(
+      RepeatedFields.Builder.class,
+      10
+    );
 
     List<RepeatedFields.Builder> parsed = writeAndReadBack(camelCase(), builders);
 
@@ -71,7 +75,9 @@ public class RepeatedFieldsTest {
 
   @Test
   public void testSingleBuilderUnderscore() {
-    RepeatedFields.Builder builder = ProtobufCreator.createBuilder(RepeatedFields.Builder.class);
+    RepeatedFields.Builder builder = ProtobufCreator.createBuilder(
+      RepeatedFields.Builder.class
+    );
 
     RepeatedFields.Builder parsed = writeAndReadBack(underscore(), builder);
 
@@ -80,7 +86,10 @@ public class RepeatedFieldsTest {
 
   @Test
   public void testMultipleBuildersUnderscore() {
-    List<RepeatedFields.Builder> builders = ProtobufCreator.createBuilder(RepeatedFields.Builder.class, 10);
+    List<RepeatedFields.Builder> builders = ProtobufCreator.createBuilder(
+      RepeatedFields.Builder.class,
+      10
+    );
 
     List<RepeatedFields.Builder> parsed = writeAndReadBack(underscore(), builders);
 
@@ -88,12 +97,15 @@ public class RepeatedFieldsTest {
   }
 
   private static List<RepeatedFields> build(List<RepeatedFields.Builder> builders) {
-    return Lists.transform(builders, new Function<RepeatedFields.Builder, RepeatedFields>() {
+    return Lists.transform(
+      builders,
+      new Function<RepeatedFields.Builder, RepeatedFields>() {
 
-      @Override
-      public RepeatedFields apply(RepeatedFields.Builder builder) {
-        return builder.build();
+        @Override
+        public RepeatedFields apply(RepeatedFields.Builder builder) {
+          return builder.build();
+        }
       }
-    });
+    );
   }
 }

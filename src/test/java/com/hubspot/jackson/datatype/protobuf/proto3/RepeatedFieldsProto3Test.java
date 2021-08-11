@@ -5,14 +5,12 @@ import static com.hubspot.jackson.datatype.protobuf.util.ObjectMapperHelper.unde
 import static com.hubspot.jackson.datatype.protobuf.util.ObjectMapperHelper.writeAndReadBack;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.util.List;
-
-import org.junit.Test;
-
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import com.hubspot.jackson.datatype.protobuf.util.ProtobufCreator;
 import com.hubspot.jackson.datatype.protobuf.util.TestProtobuf3.RepeatedFieldsProto3;
+import java.util.List;
+import org.junit.Test;
 
 public class RepeatedFieldsProto3Test {
 
@@ -27,7 +25,10 @@ public class RepeatedFieldsProto3Test {
 
   @Test
   public void testMultipleMessagesCamelCase() {
-    List<RepeatedFieldsProto3> messages = ProtobufCreator.create(RepeatedFieldsProto3.class, 10);
+    List<RepeatedFieldsProto3> messages = ProtobufCreator.create(
+      RepeatedFieldsProto3.class,
+      10
+    );
 
     List<RepeatedFieldsProto3> parsed = writeAndReadBack(camelCase(), messages);
 
@@ -36,7 +37,9 @@ public class RepeatedFieldsProto3Test {
 
   @Test
   public void testSingleBuilderCamelCase() {
-    RepeatedFieldsProto3.Builder builder = ProtobufCreator.createBuilder(RepeatedFieldsProto3.Builder.class);
+    RepeatedFieldsProto3.Builder builder = ProtobufCreator.createBuilder(
+      RepeatedFieldsProto3.Builder.class
+    );
 
     RepeatedFieldsProto3.Builder parsed = writeAndReadBack(camelCase(), builder);
 
@@ -45,7 +48,10 @@ public class RepeatedFieldsProto3Test {
 
   @Test
   public void testMultipleBuildersCamelCase() {
-    List<RepeatedFieldsProto3.Builder> builders = ProtobufCreator.createBuilder(RepeatedFieldsProto3.Builder.class, 10);
+    List<RepeatedFieldsProto3.Builder> builders = ProtobufCreator.createBuilder(
+      RepeatedFieldsProto3.Builder.class,
+      10
+    );
 
     List<RepeatedFieldsProto3.Builder> parsed = writeAndReadBack(camelCase(), builders);
 
@@ -63,7 +69,10 @@ public class RepeatedFieldsProto3Test {
 
   @Test
   public void testMultipleMessagesUnderscore() {
-    List<RepeatedFieldsProto3> messages = ProtobufCreator.create(RepeatedFieldsProto3.class, 10);
+    List<RepeatedFieldsProto3> messages = ProtobufCreator.create(
+      RepeatedFieldsProto3.class,
+      10
+    );
 
     List<RepeatedFieldsProto3> parsed = writeAndReadBack(underscore(), messages);
 
@@ -72,7 +81,9 @@ public class RepeatedFieldsProto3Test {
 
   @Test
   public void testSingleBuilderUnderscore() {
-    RepeatedFieldsProto3.Builder builder = ProtobufCreator.createBuilder(RepeatedFieldsProto3.Builder.class);
+    RepeatedFieldsProto3.Builder builder = ProtobufCreator.createBuilder(
+      RepeatedFieldsProto3.Builder.class
+    );
 
     RepeatedFieldsProto3.Builder parsed = writeAndReadBack(underscore(), builder);
 
@@ -81,20 +92,28 @@ public class RepeatedFieldsProto3Test {
 
   @Test
   public void testMultipleBuildersUnderscore() {
-    List<RepeatedFieldsProto3.Builder> builders = ProtobufCreator.createBuilder(RepeatedFieldsProto3.Builder.class, 10);
+    List<RepeatedFieldsProto3.Builder> builders = ProtobufCreator.createBuilder(
+      RepeatedFieldsProto3.Builder.class,
+      10
+    );
 
     List<RepeatedFieldsProto3.Builder> parsed = writeAndReadBack(underscore(), builders);
 
     assertThat(build(parsed)).isEqualTo(build(builders));
   }
 
-  private static List<RepeatedFieldsProto3> build(List<RepeatedFieldsProto3.Builder> builders) {
-    return Lists.transform(builders, new Function<RepeatedFieldsProto3.Builder, RepeatedFieldsProto3>() {
+  private static List<RepeatedFieldsProto3> build(
+    List<RepeatedFieldsProto3.Builder> builders
+  ) {
+    return Lists.transform(
+      builders,
+      new Function<RepeatedFieldsProto3.Builder, RepeatedFieldsProto3>() {
 
-      @Override
-      public RepeatedFieldsProto3 apply(RepeatedFieldsProto3.Builder builder) {
-        return builder.build();
+        @Override
+        public RepeatedFieldsProto3 apply(RepeatedFieldsProto3.Builder builder) {
+          return builder.build();
+        }
       }
-    });
+    );
   }
 }

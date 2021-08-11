@@ -5,11 +5,6 @@ import static com.hubspot.jackson.datatype.protobuf.util.ObjectMapperHelper.unde
 import static com.hubspot.jackson.datatype.protobuf.util.ObjectMapperHelper.writeAndReadBack;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.io.IOException;
-import java.util.List;
-
-import org.junit.Test;
-
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import com.google.protobuf.ExtensionRegistry;
@@ -17,6 +12,9 @@ import com.hubspot.jackson.datatype.protobuf.util.ProtobufCreator;
 import com.hubspot.jackson.datatype.protobuf.util.TestExtensionRegistry;
 import com.hubspot.jackson.datatype.protobuf.util.TestProtobuf.AllFields;
 import com.hubspot.jackson.datatype.protobuf.util.TestProtobuf.Nested;
+import java.io.IOException;
+import java.util.List;
+import org.junit.Test;
 
 public class AllExtensionsTest {
   private static final ExtensionRegistry EXTENSION_REGISTRY = TestExtensionRegistry.getInstance();
@@ -32,7 +30,11 @@ public class AllExtensionsTest {
 
   @Test
   public void testMultipleMessagesCamelCase() {
-    List<AllFields> messages = ProtobufCreator.create(AllFields.class, EXTENSION_REGISTRY, 10);
+    List<AllFields> messages = ProtobufCreator.create(
+      AllFields.class,
+      EXTENSION_REGISTRY,
+      10
+    );
 
     List<AllFields> parsed = writeAndReadBack(camelCase(EXTENSION_REGISTRY), messages);
 
@@ -41,7 +43,10 @@ public class AllExtensionsTest {
 
   @Test
   public void testSingleBuilderCamelCase() {
-    AllFields.Builder builder = ProtobufCreator.createBuilder(AllFields.Builder.class, EXTENSION_REGISTRY);
+    AllFields.Builder builder = ProtobufCreator.createBuilder(
+      AllFields.Builder.class,
+      EXTENSION_REGISTRY
+    );
 
     AllFields.Builder parsed = writeAndReadBack(camelCase(EXTENSION_REGISTRY), builder);
 
@@ -50,9 +55,16 @@ public class AllExtensionsTest {
 
   @Test
   public void testMultipleBuildersCamelCase() {
-    List<AllFields.Builder> builders = ProtobufCreator.createBuilder(AllFields.Builder.class, EXTENSION_REGISTRY, 10);
+    List<AllFields.Builder> builders = ProtobufCreator.createBuilder(
+      AllFields.Builder.class,
+      EXTENSION_REGISTRY,
+      10
+    );
 
-    List<AllFields.Builder> parsed = writeAndReadBack(camelCase(EXTENSION_REGISTRY), builders);
+    List<AllFields.Builder> parsed = writeAndReadBack(
+      camelCase(EXTENSION_REGISTRY),
+      builders
+    );
 
     assertThat(build(parsed)).isEqualTo(build(builders));
   }
@@ -68,7 +80,11 @@ public class AllExtensionsTest {
 
   @Test
   public void testMultipleMessagesUnderscore() {
-    List<AllFields> messages = ProtobufCreator.create(AllFields.class, EXTENSION_REGISTRY, 10);
+    List<AllFields> messages = ProtobufCreator.create(
+      AllFields.class,
+      EXTENSION_REGISTRY,
+      10
+    );
 
     List<AllFields> parsed = writeAndReadBack(underscore(EXTENSION_REGISTRY), messages);
 
@@ -77,7 +93,10 @@ public class AllExtensionsTest {
 
   @Test
   public void testSingleBuilderUnderscore() {
-    AllFields.Builder builder = ProtobufCreator.createBuilder(AllFields.Builder.class, EXTENSION_REGISTRY);
+    AllFields.Builder builder = ProtobufCreator.createBuilder(
+      AllFields.Builder.class,
+      EXTENSION_REGISTRY
+    );
 
     AllFields.Builder parsed = writeAndReadBack(underscore(EXTENSION_REGISTRY), builder);
 
@@ -86,9 +105,16 @@ public class AllExtensionsTest {
 
   @Test
   public void testMultipleBuildersUnderscore() {
-    List<AllFields.Builder> builders = ProtobufCreator.createBuilder(AllFields.Builder.class, EXTENSION_REGISTRY, 10);
+    List<AllFields.Builder> builders = ProtobufCreator.createBuilder(
+      AllFields.Builder.class,
+      EXTENSION_REGISTRY,
+      10
+    );
 
-    List<AllFields.Builder> parsed = writeAndReadBack(underscore(EXTENSION_REGISTRY), builders);
+    List<AllFields.Builder> parsed = writeAndReadBack(
+      underscore(EXTENSION_REGISTRY),
+      builders
+    );
 
     assertThat(build(parsed)).isEqualTo(build(builders));
   }
@@ -103,12 +129,15 @@ public class AllExtensionsTest {
   }
 
   private static List<AllFields> build(List<AllFields.Builder> builders) {
-    return Lists.transform(builders, new Function<AllFields.Builder, AllFields>() {
+    return Lists.transform(
+      builders,
+      new Function<AllFields.Builder, AllFields>() {
 
-      @Override
-      public AllFields apply(AllFields.Builder builder) {
-        return builder.build();
+        @Override
+        public AllFields apply(AllFields.Builder builder) {
+          return builder.build();
+        }
       }
-    });
+    );
   }
 }
