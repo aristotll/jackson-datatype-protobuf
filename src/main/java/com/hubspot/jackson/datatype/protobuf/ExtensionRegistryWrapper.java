@@ -1,30 +1,28 @@
 package com.hubspot.jackson.datatype.protobuf;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.protobuf.Descriptors.Descriptor;
 import com.google.protobuf.ExtensionRegistry;
 import com.google.protobuf.ExtensionRegistry.ExtensionInfo;
+import com.google.protobuf.ExtensionRegistryLite;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ExtensionRegistryWrapper {
+  private final Optional<ExtensionRegistryLite> wrappedExtensionRegistry;
   private final Function<Descriptor, Set<ExtensionInfo>> extensionFunction;
 
   private ExtensionRegistryWrapper() {
-    this.extensionFunction =
-      new Function<Descriptor, Set<ExtensionInfo>>() {
-
-        @Override
-        public Set<ExtensionInfo> apply(Descriptor descriptor) {
-          return Collections.emptySet();
-        }
-      };
+    this.wrappedExtensionRegistry = Optional.empty();
+    this.extensionFunction = ignored -> ImmutableSet.of();
   }
 
   private ExtensionRegistryWrapper(final ExtensionRegistry extensionRegistry) {
+    this.wrappedExtensionRegistry = Optional.of(extensionRegistry);
     this.extensionFunction =
       new Function<Descriptor, Set<ExtensionInfo>>() {
         private final Map<Descriptor, Set<ExtensionInfo>> extensionCache = new ConcurrentHashMap<>();
@@ -63,6 +61,10 @@ public class ExtensionRegistryWrapper {
 
   public Set<ExtensionInfo> getExtensionsByDescriptor(Descriptor descriptor) {
     return extensionFunction.apply(descriptor);
+  }
+
+  public Optional<ExtensionRegistryLite> getWrappedExtensionRegistry() {
+    return wrappedExtensionRegistry;
   }
 
   private interface Function<T, V> {

@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.module.SimpleDeserializers;
 import com.fasterxml.jackson.databind.module.SimpleSerializers;
+import com.google.protobuf.Any;
 import com.google.protobuf.BoolValue;
 import com.google.protobuf.BytesValue;
 import com.google.protobuf.DoubleValue;
@@ -26,6 +27,7 @@ import com.google.protobuf.Timestamp;
 import com.google.protobuf.UInt32Value;
 import com.google.protobuf.UInt64Value;
 import com.google.protobuf.Value;
+import com.hubspot.jackson.datatype.protobuf.builtin.deserializers.CanonicalAnyDeserializer;
 import com.hubspot.jackson.datatype.protobuf.builtin.deserializers.DurationDeserializer;
 import com.hubspot.jackson.datatype.protobuf.builtin.deserializers.FieldMaskDeserializer;
 import com.hubspot.jackson.datatype.protobuf.builtin.deserializers.ListValueDeserializer;
@@ -107,7 +109,11 @@ public class ProtobufModule extends Module {
 
     context.addSerializers(serializers);
 
-    context.addDeserializers(new MessageDeserializerFactory(config));
+    MessageDeserializerFactory deserializerFactory = new MessageDeserializerFactory(
+      config
+    );
+    context.addDeserializers(deserializerFactory);
+
     SimpleDeserializers deserializers = new SimpleDeserializers();
     deserializers.addDeserializer(Duration.class, new DurationDeserializer());
     deserializers.addDeserializer(FieldMask.class, new FieldMaskDeserializer());
@@ -155,6 +161,10 @@ public class ProtobufModule extends Module {
       BytesValue.class,
       wrappedPrimitiveDeserializer(BytesValue.class)
     );
+    if (config.useCanonicalAnySerialization()) {
+      deserializers.addDeserializer(Any.class, new CanonicalAnyDeserializer(config));
+    }
+
     context.addDeserializers(deserializers);
     context.setMixInAnnotations(MessageOrBuilder.class, MessageOrBuilderMixin.class);
   }

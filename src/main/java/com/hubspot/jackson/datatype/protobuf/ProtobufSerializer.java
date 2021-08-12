@@ -4,6 +4,7 @@ import static java.lang.String.format;
 
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.SerializerProvider;
@@ -116,17 +117,26 @@ public abstract class ProtobufSerializer<T extends MessageOrBuilder>
       case MESSAGE:
         Class<?> subType = value.getClass();
 
-        JsonSerializer<Object> serializer = serializerCache.get(subType);
-        if (serializer == null) {
-          serializer = serializerProvider.findValueSerializer(value.getClass(), null);
-          serializerCache.put(subType, serializer);
-        }
-
+        JsonSerializer<Object> serializer = findSerializer(subType, serializerProvider);
         serializer.serialize(value, generator, serializerProvider);
         break;
       default:
         throw unrecognizedType(field, generator);
     }
+  }
+
+  protected JsonSerializer<Object> findSerializer(
+    Class<?> type,
+    SerializerProvider serializerProvider
+  )
+    throws JsonMappingException {
+    JsonSerializer<Object> serializer = serializerCache.get(type);
+    if (serializer == null) {
+      serializer = serializerProvider.findValueSerializer(type, null);
+      serializerCache.put(type, serializer);
+    }
+
+    return serializer;
   }
 
   private static boolean writeEnumsUsingIndex(SerializerProvider config) {
