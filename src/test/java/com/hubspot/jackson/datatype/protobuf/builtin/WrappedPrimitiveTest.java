@@ -1,6 +1,7 @@
 package com.hubspot.jackson.datatype.protobuf.builtin;
 
 import static com.hubspot.jackson.datatype.protobuf.util.ObjectMapperHelper.camelCase;
+import static com.hubspot.jackson.datatype.protobuf.util.ObjectMapperHelper.create;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -16,6 +17,7 @@ import com.google.protobuf.Int64Value;
 import com.google.protobuf.StringValue;
 import com.google.protobuf.UInt32Value;
 import com.google.protobuf.UInt64Value;
+import com.hubspot.jackson.datatype.protobuf.ProtobufJacksonConfig;
 import com.hubspot.jackson.datatype.protobuf.util.BuiltInProtobufs.HasWrappedPrimitives;
 import java.io.IOException;
 import org.junit.Test;
@@ -226,6 +228,30 @@ public class WrappedPrimitiveTest {
     assertThat(message.hasBoolWrapper()).isFalse();
     assertThat(message.hasStringWrapper()).isFalse();
     assertThat(message.hasBytesWrapper()).isFalse();
+  }
+
+  @Test
+  public void itSerializesLongsAsStringsWhenEnabled() throws IOException {
+    ObjectMapper mapper = create(
+      ProtobufJacksonConfig.builder().serializeLongsAsStrings(true).build()
+    );
+
+    HasWrappedPrimitives original = HasWrappedPrimitives
+      .newBuilder()
+      .setInt64Wrapper(Int64Value.of(123))
+      .setUint64Wrapper(UInt64Value.of(456))
+      .build();
+    JsonNode json = mapper.valueToTree(original);
+
+    assertThat(json.get("int64Wrapper").isTextual()).isTrue();
+    assertThat(json.get("int64Wrapper").textValue()).isEqualTo("123");
+    assertThat(json.get("uint64Wrapper").isTextual()).isTrue();
+    assertThat(json.get("uint64Wrapper").textValue()).isEqualTo("456");
+
+    HasWrappedPrimitives parsed = mapper.treeToValue(json, HasWrappedPrimitives.class);
+
+    assertThat(parsed.getInt64Wrapper().getValue()).isEqualTo(123);
+    assertThat(parsed.getUint64Wrapper().getValue()).isEqualTo(456);
   }
 
   private static JsonNode toNode(HasWrappedPrimitives message, ObjectMapper mapper)

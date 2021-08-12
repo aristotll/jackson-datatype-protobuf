@@ -1,12 +1,16 @@
 package com.hubspot.jackson.datatype.protobuf.builtin;
 
 import static com.hubspot.jackson.datatype.protobuf.util.ObjectMapperHelper.camelCase;
+import static com.hubspot.jackson.datatype.protobuf.util.ObjectMapperHelper.create;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.protobuf.Any;
+import com.google.protobuf.Int64Value;
 import com.google.protobuf.Value;
+import com.hubspot.jackson.datatype.protobuf.ProtobufJacksonConfig;
 import com.hubspot.jackson.datatype.protobuf.util.BuiltInProtobufs.HasAny;
 import java.io.IOException;
 import org.junit.Test;
@@ -136,6 +140,104 @@ public class AnyTest {
     String json = "{}";
     HasAny message = camelCase().readValue(json, HasAny.class);
     assertThat(message.hasAny()).isFalse();
+  }
+
+  @Test
+  public void itSerializesLongsAsStringsInsideAny() throws IOException {
+    ObjectMapper mapper = create(
+      ProtobufJacksonConfig
+        .builder()
+        .serializeLongsAsStrings(true)
+        .useCanonicalAnySerialization(
+          AnyTypeRegistry
+            .builder()
+            .addMessageType(Int64Value.getDefaultInstance())
+            .build()
+        )
+        .build()
+    );
+
+    HasAny original = HasAny
+      .newBuilder()
+      .setAny(
+        Any
+          .newBuilder()
+          .setTypeUrl("type.googleapis.com/google.protobuf.Int64Value")
+          .setValue(Int64Value.of(123).toByteString())
+          .build()
+      )
+      .build();
+
+    JsonNode json = mapper.valueToTree(original);
+
+    assertThat(json.path("any").path("@type").textValue())
+      .isEqualTo("type.googleapis.com/google.protobuf.Int64Value");
+    assertThat(json.path("any").path("value").isTextual()).isTrue();
+    assertThat(json.path("any").path("value").textValue()).isEqualTo("123");
+
+    HasAny parsed = mapper.treeToValue(json, HasAny.class);
+
+    assertThat(parsed.getAny().getTypeUrl())
+      .isEqualTo("type.googleapis.com/google.protobuf.Int64Value");
+    assertThat(parsed.getAny().getValue()).isEqualTo(Int64Value.of(123).toByteString());
+  }
+
+  @Test
+  public void itSerializesNestedAny() throws IOException {
+    ObjectMapper mapper = create(
+      ProtobufJacksonConfig
+        .builder()
+        .useCanonicalAnySerialization(
+          AnyTypeRegistry
+            .builder()
+            .addMessageType(Any.getDefaultInstance())
+            .addMessageType(Int64Value.getDefaultInstance())
+            .build()
+        )
+        .build()
+    );
+
+    Any nested = Any
+      .newBuilder()
+      .setTypeUrl("type.googleapis.com/google.protobuf.Int64Value")
+      .setValue(Int64Value.of(123).toByteString())
+      .build();
+
+    HasAny original = HasAny
+      .newBuilder()
+      .setAny(
+        Any
+          .newBuilder()
+          .setTypeUrl("type.googleapis.com/google.protobuf.Any")
+          .setValue(nested.toByteString())
+          .build()
+      )
+      .build();
+
+    JsonNode json = mapper.valueToTree(original);
+    JsonNode expected = mapper
+      .createObjectNode()
+      .set(
+        "any",
+        mapper
+          .createObjectNode()
+          .put("@type", "type.googleapis.com/google.protobuf.Any")
+          .set(
+            "value",
+            mapper
+              .createObjectNode()
+              .put("@type", "type.googleapis.com/google.protobuf.Int64Value")
+              .put("value", 123L)
+          )
+      );
+
+    assertThat(json).isEqualTo(expected);
+
+    HasAny parsed = mapper.treeToValue(json, HasAny.class);
+
+    assertThat(parsed.getAny().getTypeUrl())
+      .isEqualTo("type.googleapis.com/google.protobuf.Any");
+    assertThat(Any.parseFrom(parsed.getAny().getValue())).isEqualTo(nested);
   }
 
   private static JsonNode anyNode() {

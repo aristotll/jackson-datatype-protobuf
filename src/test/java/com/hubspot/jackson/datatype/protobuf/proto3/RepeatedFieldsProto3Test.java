@@ -1,14 +1,19 @@
 package com.hubspot.jackson.datatype.protobuf.proto3;
 
 import static com.hubspot.jackson.datatype.protobuf.util.ObjectMapperHelper.camelCase;
+import static com.hubspot.jackson.datatype.protobuf.util.ObjectMapperHelper.create;
 import static com.hubspot.jackson.datatype.protobuf.util.ObjectMapperHelper.underscore;
 import static com.hubspot.jackson.datatype.protobuf.util.ObjectMapperHelper.writeAndReadBack;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.google.common.base.Function;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.hubspot.jackson.datatype.protobuf.ProtobufJacksonConfig;
 import com.hubspot.jackson.datatype.protobuf.util.ProtobufCreator;
 import com.hubspot.jackson.datatype.protobuf.util.TestProtobuf3.RepeatedFieldsProto3;
+import java.io.IOException;
 import java.util.List;
 import org.junit.Test;
 
@@ -102,18 +107,38 @@ public class RepeatedFieldsProto3Test {
     assertThat(build(parsed)).isEqualTo(build(builders));
   }
 
+  @Test
+  public void itSerializesLongsAsStringsIfEnabled() throws IOException {
+    ObjectMapper mapper = create(
+      ProtobufJacksonConfig.builder().serializeLongsAsStrings(true).build()
+    );
+
+    RepeatedFieldsProto3 original = RepeatedFieldsProto3
+      .newBuilder()
+      .addInt64(123)
+      .addUint64(456)
+      .build();
+
+    JsonNode json = mapper.valueToTree(original);
+
+    assertThat(json.path("int64").isArray());
+    assertThat(json.get("int64").size()).isEqualTo(1);
+    assertThat(json.get("int64").get(0).isTextual()).isTrue();
+    assertThat(json.get("int64").get(0).textValue()).isEqualTo("123");
+    assertThat(json.path("uint64").isArray());
+    assertThat(json.get("uint64").size()).isEqualTo(1);
+    assertThat(json.get("uint64").get(0).isTextual()).isTrue();
+    assertThat(json.get("uint64").get(0).textValue()).isEqualTo("456");
+
+    RepeatedFieldsProto3 parsed = mapper.treeToValue(json, RepeatedFieldsProto3.class);
+
+    assertThat(parsed.getInt64List()).isEqualTo(ImmutableList.of(123L));
+    assertThat(parsed.getUint64List()).isEqualTo(ImmutableList.of(456L));
+  }
+
   private static List<RepeatedFieldsProto3> build(
     List<RepeatedFieldsProto3.Builder> builders
   ) {
-    return Lists.transform(
-      builders,
-      new Function<RepeatedFieldsProto3.Builder, RepeatedFieldsProto3>() {
-
-        @Override
-        public RepeatedFieldsProto3 apply(RepeatedFieldsProto3.Builder builder) {
-          return builder.build();
-        }
-      }
-    );
+    return Lists.transform(builders, RepeatedFieldsProto3.Builder::build);
   }
 }

@@ -1,13 +1,16 @@
 package com.hubspot.jackson.datatype.protobuf.proto3;
 
 import static com.hubspot.jackson.datatype.protobuf.util.ObjectMapperHelper.camelCase;
+import static com.hubspot.jackson.datatype.protobuf.util.ObjectMapperHelper.create;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
+import com.google.common.collect.ImmutableMap;
 import com.google.protobuf.Any;
 import com.google.protobuf.BoolValue;
 import com.google.protobuf.ByteString;
@@ -26,6 +29,7 @@ import com.google.protobuf.Timestamp;
 import com.google.protobuf.UInt32Value;
 import com.google.protobuf.UInt64Value;
 import com.google.protobuf.Value;
+import com.hubspot.jackson.datatype.protobuf.ProtobufJacksonConfig;
 import com.hubspot.jackson.datatype.protobuf.util.BuiltInProtobufs.HasAllMapValues;
 import com.hubspot.jackson.datatype.protobuf.util.TestProtobuf.AllFields;
 import com.hubspot.jackson.datatype.protobuf.util.TestProtobuf3.AllFieldsProto3;
@@ -70,6 +74,29 @@ public class AllMapValuesTest {
     String json = camelCase().writeValueAsString(hasNullMapsNode());
     HasAllMapValues message = camelCase().readValue(json, HasAllMapValues.class);
     assertThat(message).isEqualTo(HasAllMapValues.getDefaultInstance());
+  }
+
+  @Test
+  public void itSerializesLongsAsStringsIfEnabled() throws IOException {
+    ObjectMapper mapper = create(
+      ProtobufJacksonConfig.builder().serializeLongsAsStrings(true).build()
+    );
+
+    HasAllMapValues original = HasAllMapValues
+      .newBuilder()
+      .putInt64Map("key1", 123)
+      .putUint64Map("key2", 456)
+      .build();
+
+    JsonNode json = mapper.valueToTree(original);
+
+    assertThat(json.path("int64Map")).isEqualTo(newObjectNode().put("key1", "123"));
+    assertThat(json.path("uint64Map")).isEqualTo(newObjectNode().put("key2", "456"));
+
+    HasAllMapValues parsed = mapper.treeToValue(json, HasAllMapValues.class);
+
+    assertThat(parsed.getInt64MapMap()).isEqualTo(ImmutableMap.of("key1", 123L));
+    assertThat(parsed.getUint64MapMap()).isEqualTo(ImmutableMap.of("key2", 456L));
   }
 
   private static HasAllMapValues hasAllMapValues() {

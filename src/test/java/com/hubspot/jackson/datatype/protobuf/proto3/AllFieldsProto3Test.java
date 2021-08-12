@@ -1,12 +1,15 @@
 package com.hubspot.jackson.datatype.protobuf.proto3;
 
 import static com.hubspot.jackson.datatype.protobuf.util.ObjectMapperHelper.camelCase;
+import static com.hubspot.jackson.datatype.protobuf.util.ObjectMapperHelper.create;
 import static com.hubspot.jackson.datatype.protobuf.util.ObjectMapperHelper.underscore;
 import static com.hubspot.jackson.datatype.protobuf.util.ObjectMapperHelper.writeAndReadBack;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.google.common.base.Function;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
+import com.hubspot.jackson.datatype.protobuf.ProtobufJacksonConfig;
 import com.hubspot.jackson.datatype.protobuf.util.ProtobufCreator;
 import com.hubspot.jackson.datatype.protobuf.util.TestProtobuf3.AllFieldsProto3;
 import com.hubspot.jackson.datatype.protobuf.util.TestProtobuf3.NestedProto3;
@@ -107,16 +110,32 @@ public class AllFieldsProto3Test {
     assertThat(parsed.getNested()).isEqualTo(NestedProto3.getDefaultInstance());
   }
 
-  private static List<AllFieldsProto3> build(List<AllFieldsProto3.Builder> builders) {
-    return Lists.transform(
-      builders,
-      new Function<AllFieldsProto3.Builder, AllFieldsProto3>() {
-
-        @Override
-        public AllFieldsProto3 apply(AllFieldsProto3.Builder builder) {
-          return builder.build();
-        }
-      }
+  @Test
+  public void itSerializesLongsAsStringsIfEnabled() throws IOException {
+    ObjectMapper mapper = create(
+      ProtobufJacksonConfig.builder().serializeLongsAsStrings(true).build()
     );
+
+    AllFieldsProto3 original = AllFieldsProto3
+      .newBuilder()
+      .setInt64(123)
+      .setUint64(456)
+      .build();
+
+    JsonNode json = mapper.valueToTree(original);
+
+    assertThat(json.path("int64").isTextual());
+    assertThat(json.get("int64").textValue()).isEqualTo("123");
+    assertThat(json.path("uint64").isTextual());
+    assertThat(json.get("uint64").textValue()).isEqualTo("456");
+
+    AllFieldsProto3 parsed = mapper.treeToValue(json, AllFieldsProto3.class);
+
+    assertThat(parsed.getInt64()).isEqualTo(123);
+    assertThat(parsed.getUint64()).isEqualTo(456);
+  }
+
+  private static List<AllFieldsProto3> build(List<AllFieldsProto3.Builder> builders) {
+    return Lists.transform(builders, AllFieldsProto3.Builder::build);
   }
 }

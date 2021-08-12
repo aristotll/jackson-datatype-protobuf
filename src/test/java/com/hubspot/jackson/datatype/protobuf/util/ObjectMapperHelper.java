@@ -10,16 +10,18 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.google.common.collect.Lists;
 import com.google.protobuf.ExtensionRegistry;
 import com.google.protobuf.MessageOrBuilder;
+import com.hubspot.jackson.datatype.protobuf.ProtobufJacksonConfig;
 import com.hubspot.jackson.datatype.protobuf.ProtobufModule;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
 public class ObjectMapperHelper {
-  private static final ObjectMapper DEFAULT = create();
+  private static final ObjectMapper DEFAULT = create(ProtobufJacksonConfig.getDefault());
   private static final ObjectMapper UNDERSCORE = create(
-    PropertyNamingStrategy.SNAKE_CASE
-  );
+      ProtobufJacksonConfig.getDefault()
+    )
+    .setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE);
 
   public static ObjectMapper camelCase() {
     return DEFAULT;
@@ -30,15 +32,25 @@ public class ObjectMapperHelper {
   }
 
   public static ObjectMapper camelCase(Include inclusion) {
-    return create().setSerializationInclusion(inclusion);
+    return create(ProtobufJacksonConfig.getDefault())
+      .setSerializationInclusion(inclusion);
   }
 
   public static ObjectMapper camelCase(ExtensionRegistry extensionRegistry) {
-    return create(extensionRegistry);
+    return create(
+      ProtobufJacksonConfig.builder().extensionRegistry(extensionRegistry).build()
+    );
   }
 
   public static ObjectMapper underscore(ExtensionRegistry extensionRegistry) {
-    return create(PropertyNamingStrategy.SNAKE_CASE, extensionRegistry);
+    return create(
+        ProtobufJacksonConfig.builder().extensionRegistry(extensionRegistry).build()
+      )
+      .setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE);
+  }
+
+  public static ObjectMapper create(ProtobufJacksonConfig config) {
+    return new ObjectMapper().registerModule(new ProtobufModule(config));
   }
 
   public static JsonNode toTree(ObjectMapper mapper, Object value) {
@@ -76,24 +88,5 @@ public class ObjectMapperHelper {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
-  }
-
-  private static ObjectMapper create(
-    PropertyNamingStrategy namingStrategy,
-    ExtensionRegistry extensionRegistry
-  ) {
-    return create(extensionRegistry).setPropertyNamingStrategy(namingStrategy);
-  }
-
-  private static ObjectMapper create(ExtensionRegistry extensionRegistry) {
-    return new ObjectMapper().registerModule(new ProtobufModule(extensionRegistry));
-  }
-
-  private static ObjectMapper create(PropertyNamingStrategy namingStrategy) {
-    return create().setPropertyNamingStrategy(namingStrategy);
-  }
-
-  private static ObjectMapper create() {
-    return new ObjectMapper().registerModule(new ProtobufModule());
   }
 }

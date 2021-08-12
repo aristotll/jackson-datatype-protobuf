@@ -48,7 +48,7 @@ public class MessageSerializer extends ProtobufSerializer<MessageOrBuilder> {
     boolean isUnwrappingSerializer,
     NameTransformer nameTransformer
   ) {
-    super(MessageOrBuilder.class);
+    super(MessageOrBuilder.class, config);
     this.config = config;
     this.isUnwrappingSerializer = isUnwrappingSerializer;
     this.nameTransformer = nameTransformer;
