@@ -4,7 +4,11 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.core.io.NumberInput;
-import com.fasterxml.jackson.databind.*;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
@@ -23,7 +27,10 @@ import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public abstract class ProtobufDeserializer<T extends Message, V extends Message.Builder> extends StdDeserializer<V> {
@@ -273,11 +280,11 @@ public abstract class ProtobufDeserializer<T extends Message, V extends Message.
   //                builder.setUnknownFields(builder.getUnknownFields()
   //                        .toBuilder().mergeVarintField(field.getNumber(), rawNumber)
   //                        .build());
-                String name = field.getName();
+                String name = field.getJsonName();
                 // if method setXXValue exists in builder call it with rawNumber
                 try {
-                  Method method =  builder.getClass().getMethod("set" + name.substring(0, 1).toUpperCase() +
-                          name.substring(1) + "Value", int.class);
+                    Method method = builder.getClass().getMethod((field.isRepeated() ? "add" : "set") + name.substring(0, 1).toUpperCase() +
+                            name.substring(1) + "Value", int.class);
                   method.invoke(builder, rawNumber);
                 } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException ignored) {
                 }
