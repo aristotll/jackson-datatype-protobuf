@@ -283,6 +283,8 @@ public abstract class ProtobufDeserializer<T extends Message, V extends Message.
                 String name = field.getJsonName();
                 // if method setXXValue exists in builder call it with rawNumber
                 try {
+                    // todo add the field in corresponding position rather than always add it to the first
+                    // todo fix addxxx always add to the first index
                     Method method = builder.getClass().getMethod((field.isRepeated() ? "add" : "set") + name.substring(0, 1).toUpperCase() +
                             name.substring(1) + "Value", int.class);
                   method.invoke(builder, rawNumber);
