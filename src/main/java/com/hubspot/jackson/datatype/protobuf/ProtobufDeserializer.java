@@ -1,23 +1,10 @@
 package com.hubspot.jackson.datatype.protobuf;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
-import javax.annotation.Nonnull;
-
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.core.io.NumberInput;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.*;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
@@ -30,8 +17,14 @@ import com.google.protobuf.Descriptors.FieldDescriptor;
 import com.google.protobuf.Message;
 import com.google.protobuf.NullValue;
 import com.hubspot.jackson.datatype.protobuf.builtin.deserializers.MessageDeserializer;
-
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
+import javax.annotation.Nonnull;
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public abstract class ProtobufDeserializer<T extends Message, V extends Message.Builder> extends StdDeserializer<V> {
   private static final String NULL_VALUE_FULL_NAME = NullValue.getDescriptor().getFullName();
@@ -265,15 +258,36 @@ public abstract class ProtobufDeserializer<T extends Message, V extends Message.
             throw reportWrongToken(field, JsonToken.VALUE_STRING, context);
         }
       case ENUM:
-        final EnumValueDescriptor enumValueDescriptor;
+        EnumValueDescriptor enumValueDescriptor;
         switch (parser.getCurrentToken()) {
           case VALUE_STRING:
             enumValueDescriptor = field.getEnumType().findValueByName(parser.getText());
 
-            if (enumValueDescriptor == null && !ignorableEnum(parser.getText().trim(), context)) {
-              throw context.weirdStringException(parser.getText(), field.getEnumType().getClass(),
-                      "value not one of declared Enum instance names");
+            if (enumValueDescriptor == null) {
+              // UNKNOWN_ENUM_VALUE_Enum_272
+              String text = parser.getText();
+              if (text.startsWith("UNKNOWN_ENUM_VALUE_")) {
+                int i = text.lastIndexOf("_");
+                int rawNumber = Integer.parseInt(text.substring(i + 1));
+  // @see com.google.protobuf.MessageReflection#mergeFieldFrom
+  //                builder.setUnknownFields(builder.getUnknownFields()
+  //                        .toBuilder().mergeVarintField(field.getNumber(), rawNumber)
+  //                        .build());
+                String name = field.getName();
+                // if method setXXValue exists in builder call it with rawNumber
+                try {
+                  Method method =  builder.getClass().getMethod("set" + name.substring(0, 1).toUpperCase() +
+                          name.substring(1) + "Value", int.class);
+                  method.invoke(builder, rawNumber);
+                } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException ignored) {
+                }
+                return null;
+              }
             }
+              if (enumValueDescriptor == null && !ignorableEnum(parser.getText().trim(), context)) {
+                throw context.weirdStringException(parser.getText(), field.getEnumType().getClass(),
+                        "value not one of declared Enum instance names");
+              }
 
             return enumValueDescriptor;
           case VALUE_NUMBER_INT:
