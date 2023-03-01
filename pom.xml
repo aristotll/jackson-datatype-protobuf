@@ -14,6 +14,7 @@
   <description>Jackson Module that adds support for reading/writing protobufs</description>
 
   <properties>
+    <basepom.javadoc.skip>false</basepom.javadoc.skip>
     <basepom.check.skip-pom-lint>true</basepom.check.skip-pom-lint>
     <basepom.check.skip-dependency-versions-check>true</basepom.check.skip-dependency-versions-check>
     <basepom.check.skip-dependency-management>true</basepom.check.skip-dependency-management>
